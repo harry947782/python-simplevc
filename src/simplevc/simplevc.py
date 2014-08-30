@@ -86,11 +86,8 @@ def createCipherImage(keyIm, plainIm, padSize):
 
 if __name__ == '__main__':
     plainIm = Image.open("right.ppm").convert(mode='L')
-    plainIm2 = Image.open("wrong.ppm").convert(mode='L')
     keyIm = createKeyImage(plainIm.size, 4)
     keyIm.save("key.png", "PNG")
     cipherIm = createCipherImage(keyIm, plainIm, 4)
     cipherIm.save("right.png", "PNG")
-    falseCipherIm = createCipherImage(cipherIm, plainIm2, 4)
-    falseCipherIm.save("wrong.png", "PNG")
 
