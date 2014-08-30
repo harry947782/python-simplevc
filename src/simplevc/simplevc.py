@@ -1,67 +1,94 @@
 '''
 Created on 30 Aug 2014
 
-@author: harry@alt-control.net
+@author: harry <AT> alt-control.net
 '''
 
 from PIL import Image
-import random,operator
+import random, operator
 
+# the second value is the ALPHA, setting it to transparent for blank pixels allows the images to be overlayed in software
+BLANKPIXEL = 0xFF, 0x00
+FILLEDPIXEL = 0x00, 0xFF
 
-def mult(tupl,scalar):
-    return tuple(map(lambda x: scalar*x,tupl))
+def mult(tupl, scalar):
+    return tuple(map(lambda x: scalar * x, tupl))
 
-def add(tupl,scalar):
-    return tuple(map(lambda x: x+scalar,tupl))
+def add(tupl, scalar):
+    return tuple(map(lambda x: x + scalar, tupl))
 
-def positions(size):
-    maxX,maxY = size
-    for x in range(0,maxX):
-        for y in range(0,maxY):
-            yield (x,y)
+def allPositions(size):
+    maxX, maxY = size
+    for x in range(0, maxX):
+        for y in range(0, maxY):
+            yield (x, y)
 
-   
-def addtuple(a,b):
-    return tuple(map(operator.add,a,b))
+def addtuple(a, b):
+    return tuple(map(operator.add, a, b))
 
-def padPositions(padCentre, padsize):
-    for offset in positions((padsize,padsize)):
-        yield addtuple(padCentre,add(offset,-1*int(padsize/2)))
+def allZeroCentrePositions(size):
+    halfX = int(size[0] / 2)
+    halfY = int(size[1] / 2)
+    for x in range(-1*halfX, halfX):
+        for y in range(-1*halfY, halfY):
+            yield (x, y)
 
+def padPositions(padCentrePoint, padSize):
+    for offset in allZeroCentrePositions((padSize, padSize)):
+        yield addtuple(padCentrePoint, offset)
 
-def createKeyImage(size,padsize):
-    keyIm = Image.new('LA', mult(size,padsize), (0xFF,0x00))
-    for position in positions(size):
-        padCentre = add(mult(position,padsize),int(padsize/2))
-        for padPos in random.sample([x for x in padPositions(padCentre,padsize)],int(padsize*padsize/2)):
-            keyIm.putpixel(padPos, (0x00,0xFF))
+def randomHalfOf(vals):
+    return random.sample(vals, int(len(vals) / 2))
+
+def generateKeySetPositions(size, padsize):
+    for position in allPositions(size):
+        getPadCentre = add(mult(position, padsize), int(padsize / 2))
+        allPadPositions = list(padPositions(getPadCentre, padsize))
+        for padPos in randomHalfOf(allPadPositions):
+            yield padPos
+
+def createKeyImage(size, padsize):
+    keyIm = Image.new('LA', mult(size, padsize), BLANKPIXEL)
+    for pos in generateKeySetPositions(size, padsize):
+        keyIm.putpixel(pos, FILLEDPIXEL)
     return keyIm
 
-
-def pixelSet(pixel):
-    return pixel > 0x00
+def isPixelSet(pixelValue):
+    return pixelValue > 0x00
 
 
 def invertPixel(cipherIm, pos):
-    cipherIm.putpixel(pos,add(mult(cipherIm.getpixel(pos),-1),0xFF))
+    cipherIm.putpixel(pos, add(mult(cipherIm.getpixel(pos), -1), 0xFF))
 
 
-def createCipherImage(keyIm, plainIm, padsize):
+def invertPad(cipherIm, padCentre, padSize):
+    for padPos in padPositions(padCentre, padSize):
+        invertPixel(cipherIm, padPos)
+
+def getSetPixels(image):
+    for position in allPositions(image.size):
+        if isPixelSet(image.getpixel(position)):
+            yield position
+
+def getPadCentre(position, padSize):
+    return add(mult(position, padSize), int(padSize / 2))
+
+def createCipherImage(keyIm, plainIm, padSize):
+    assert keyIm.size == mult(plainIm.size, padSize)
     cipherIm = keyIm.copy()
-    for position in positions(plainIm.size):
-        padCentre = add(mult(position,padsize),int(padsize/2))
-        if pixelSet(plainIm.getpixel(position)):
-            for padPos in padPositions(padCentre,padsize):
-                invertPixel(cipherIm,padPos)
+    for position in getSetPixels(plainIm):
+        padCentre = getPadCentre(position, padSize)
+        invertPad(cipherIm, padCentre, padSize)
     return cipherIm
 
 
 if __name__ == '__main__':
     plainIm = Image.open("right.ppm").convert(mode='L')
     plainIm2 = Image.open("wrong.ppm").convert(mode='L')
-    keyIm = createKeyImage(plainIm.size,4)
-    keyIm.save("key.png","PNG")
-    cipherIm = createCipherImage(keyIm,plainIm,4)
-    cipherIm.save("right.png","PNG")
-    falseCipherIm = createCipherImage(cipherIm,plainIm2,4)
-    falseCipherIm.save("wrong.png","PNG")
+    keyIm = createKeyImage(plainIm.size, 4)
+    keyIm.save("key.png", "PNG")
+    cipherIm = createCipherImage(keyIm, plainIm, 4)
+    cipherIm.save("right.png", "PNG")
+    falseCipherIm = createCipherImage(cipherIm, plainIm2, 4)
+    falseCipherIm.save("wrong.png", "PNG")
+
