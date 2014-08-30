@@ -75,6 +75,8 @@ def getPadCentre(position, padSize):
 
 def createCipherImage(keyIm, plainIm, padSize):
     assert keyIm.size == mult(plainIm.size, padSize)
+    assert plainIm.mode == 'L'
+    assert keyIm.mode == 'LA'
     cipherIm = keyIm.copy()
     for position in getSetPixels(plainIm):
         padCentre = getPadCentre(position, padSize)
