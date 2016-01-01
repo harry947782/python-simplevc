@@ -56,10 +56,8 @@ def createKeyImage(size, padsize):
 def isPixelSet(pixelValue):
     return pixelValue > 0x00
 
-
 def invertPixel(cipherIm, pos):
     cipherIm.putpixel(pos, add(mult(cipherIm.getpixel(pos), -1), 0xFF))
-
 
 def invertPad(cipherIm, padCentre, padSize):
     for padPos in padPositions(padCentre, padSize):
@@ -85,9 +83,9 @@ def createCipherImage(keyIm, plainIm, padSize):
 
 
 if __name__ == '__main__':
-    plainIm = Image.open("right.ppm").convert(mode='L')
-    keyIm = createKeyImage(plainIm.size, 4)
+    plainIm = Image.open("cubs.ppm").convert(mode='L')
+    keyIm = createKeyImage(plainIm.size, 2)
     keyIm.save("key.png", "PNG")
-    cipherIm = createCipherImage(keyIm, plainIm, 4)
+    cipherIm = createCipherImage(keyIm, plainIm, 2)
     cipherIm.save("right.png", "PNG")
 
