@@ -6,11 +6,17 @@ Created on 30 Aug 2014
 
 from PIL import Image
 import random, operator
-from math import ceil, floor
+import math
 
 # the second value is the ALPHA, setting it to transparent for blank pixels allows the images to be overlayed in software
 BLANKPIXEL = 0xFF, 0x00
 FILLEDPIXEL = 0x00, 0xFF
+
+def ceil(f):
+    return int(math.ceil(f))
+
+def floor(f):
+    return int(math.floor(f))
 
 def mult(tupl, scalar):
     return tuple(map(lambda x: scalar * x, tupl))
