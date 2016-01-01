@@ -1,3 +1,9 @@
-from PIL import Image
+import unittest
 
-print("success 2")
+class TestStringMethods(unittest.TestCase):
+
+  def test_upper(self):
+      self.assertEqual('foo'.upper(), 'FOO')
+
+if __name__ == '__main__':
+    unittest.main()
