@@ -54,6 +54,6 @@ class TestStringMethods(unittest.TestCase):
     def test_randomHalfOf(self):
         self.assertEqual(5, len(randomHalfOf([0,1,2,3,4,5,6,7,8,9])))
         self.assertEqual(4, len(randomHalfOf([0,1,2,3,4,5,6,7,8])))
-
+    
 if __name__ == '__main__':
     unittest.main()

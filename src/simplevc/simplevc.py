@@ -21,7 +21,7 @@ def floor(f):
 def mult(tupl, scalar):
     return tuple(map(lambda x: scalar * x, tupl))
 
-def tuple_mult(a,b):
+def tuple_mult(a, b):
     assert len(a) == len(b)
     return tuple(map(operator.mul, a, b))
 
@@ -42,8 +42,8 @@ def allPositions(size):
 def allZeroCentrePositions(size):
     halfX = size[0] / 2.0
     halfY = size[1] / 2.0
-    for x in range(-1*floor(halfX), ceil(halfX)):
-        for y in range(-1*floor(halfY), ceil(halfY)):
+    for x in range(-1 * floor(halfX), ceil(halfX)):
+        for y in range(-1 * floor(halfY), ceil(halfY)):
             yield (x, y)
 
 def padPositions(padCentrePoint, padSize):
@@ -51,7 +51,7 @@ def padPositions(padCentrePoint, padSize):
         yield tuple_add(padCentrePoint, offset)
 
 def padCentre(sourcePosition, padSize):
-    return tuple(map(floor,tuple_add(tuple_mult(sourcePosition, padSize), mult(padSize, 0.5))))
+    return tuple(map(floor, tuple_add(tuple_mult(sourcePosition, padSize), mult(padSize, 0.5))))
 
 def randomHalfOf(vals):
     return random.sample(vals, int(len(vals) / 2))
@@ -94,11 +94,20 @@ def createCipherImage(keyIm, plainIm, padSize):
         invertPad(cipherIm, pad, padSize)
     return cipherIm
 
+def createKeyAndCipher(inputImageFilename, outputFormat, keyFilename, cipherFilename, padSize=(3, 3)):
+    """
+    Creates a key/cipher pair which when combined produce a representation of the original image.
+    
+    The input image should be black and white (not greyscale).
+    The dimensions of the output images will be the dimensions of the input image,
+    multiplied by the padSize.    
+    """
+    plainIm = Image.open(inputImageFilename).convert(mode='L')
+    keyIm = createKeyImage(plainIm.size, padSize)
+    keyIm.save(keyFilename, outputFormat)
+    cipherIm = createCipherImage(keyIm, plainIm, padSize)
+    cipherIm.save(cipherFilename, outputFormat)
 
 if __name__ == '__main__':
-    plainIm = Image.open("cubs.ppm").convert(mode='L')
-    keyIm = createKeyImage(plainIm.size, (2,2))
-    keyIm.save("key.png", "PNG")
-    cipherIm = createCipherImage(keyIm, plainIm, (2,2))
-    cipherIm.save("right.png", "PNG")
+    createKeyAndCipher("exampleinput.png", "PNG", "examplekey.png", "examplecipher.png", (3, 3))
 
